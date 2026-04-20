@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Innova ESAN &mdash; Content Calendar</title>
+  <meta name="description" content="Herramienta de gesti&oacute;n de calendario de contenidos mensual para Innova ESAN, Incubadora de Negocios de la Universidad ESAN." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== DESIGN TOKENS — Innova ESAN Brandbook ===== */
+    :root {
+      /* Brand primaries */
+      --blue:        #2176FF;
+      --blue-dark:   #1558cc;
+      --blue-light:  #4d93ff;
+      --yellow:      #FFA515;
+      --yellow-dark: #d4860e;
+      --red:         #e3173e;
+      --red-dark:    #b81030;
+
+      /* Aliases kept for backward compat */
+      --navy:        #2176FF;
+      --navy-dark:   #1558cc;
+      --navy-light:  #4d93ff;
+      --orange:      #FFA515;
+      --orange-dark: #d4860e;
+      --emerald:     #2176FF;
+
+      --bg:         #FFFFFF;
+      --surface:    #FFFFFF;
+      --soft:       #F4F6FA;
+      --border:     #DDE3EE;
+      --text:       #1A1A1A;
+      --text-muted: #5A6070;
+      --text-light: #9AA0B0;
+
+      /* Pillar colours — brandbook */
+      --spotlight:  #2176FF;  /* Innova Spotlight  - Lunes */
+      --edu:        #FFA515;  /* Edu-Innovation    - Miércoles */
+      --action:     #e3173e;  /* Action & Community - Viernes */
+
+      /* Milestone colours */
+      --taller:      #7B2FBE;  /* Taller */
+      --conferencia: #0EA5A0;  /* Conferencia */
+
+      --radius-sm:  6px;
+      --radius:     12px;
+      --radius-lg:  18px;
+      --shadow-sm:  0 1px 4px rgba(33,118,255,.08);
+      --shadow:     0 4px 20px rgba(33,118,255,.12);
+      --shadow-lg:  0 12px 40px rgba(33,118,255,.18);
+      --transition: .22s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4, h5, h6,
+    .logo-text span, .month-label, .modal-title, .section-title,
+    .empty-state h3, .confirm-box h3, .stat-num, .date-day {
+      font-family: 'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    button { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; cursor: pointer; border: none; outline: none; }
+    input, select, textarea { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--soft); }
+    ::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 99px; }
+
+    /* ===== HEADER ===== */
+    #app-header {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%);
+      color: #fff;
+      padding: 0 24px;
+      box-shadow: var(--shadow-lg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0 12px;
+      flex-wrap: wrap;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo-badge {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 16px;
+      color: #fff;
+      letter-spacing: -.5px;
+      font-family: 'Raleway', sans-serif;
+      box-shadow: 0 4px 12px rgba(255,165,21,.45);
+    }
+    .logo-text { line-height: 1.2; }
+    .logo-text span {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--yellow);
+      text-transform: uppercase;
+      font-family: 'Raleway', sans-serif;
+    }
+    .logo-text small {
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255,255,255,.6);
+      letter-spacing: .04em;
+    }
+
+    /* Month nav */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--radius);
+      padding: 6px 12px;
+      backdrop-filter: blur(8px);
+    }
+    .month-nav button {
+      background: rgba(255,255,255,.15);
+      color: #fff;
+      border-radius: 6px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: background var(--transition);
+    }
+    .month-nav button:hover { background: rgba(255,255,255,.3); }
+    .month-nav select {
+      background: transparent;
+      color: #fff;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 2px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .month-nav select option { background: var(--blue-dark); color: #fff; }
+    .month-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      min-width: 140px;
+      text-align: center;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    /* Header actions */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--yellow);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(255,165,21,.35);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+    }
+    .btn-primary:hover {
+      background: var(--yellow-dark);
+      box-shadow: 0 4px 16px rgba(255,165,21,.5);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.2);
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,.22);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--blue);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover {
+      background: var(--soft);
+      border-color: var(--blue);
+    }
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+    .btn-danger:hover { background: #dc2626; }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      background: rgba(255,255,255,.1);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      border: 1px solid rgba(255,255,255,.15);
+    }
+    .view-btn {
+      width: 34px; height: 34px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,.6);
+      transition: all var(--transition);
+      font-size: 16px;
+    }
+    .view-btn.active {
+      background: rgba(255,255,255,.25);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .view-btn:hover:not(.active) { color: #fff; }
+
+    /* ===== FILTER BAR ===== */
+    #filter-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .filter-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .chip:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .chip.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    .chip.spotlight.active { background: var(--spotlight); border-color: var(--spotlight); }
+    .chip.edu.active       { background: var(--edu);       border-color: var(--edu); color: #fff; }
+    .chip.action.active    { background: var(--action);    border-color: var(--action); color: #fff; }
+    .filter-divider {
+      width: 1px; height: 28px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    #main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* ===== TABLE VIEW ===== */
+    #view-table { display: block; }
+    #view-grid  { display: none; }
+
+    .table-wrapper {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .content-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .content-table thead th {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: #fff;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      font-family: 'Raleway', sans-serif;
+    }
+    .content-table thead th:first-child { border-radius: 0; }
+    .content-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+    .content-table tbody tr:last-child { border-bottom: none; }
+    .content-table tbody tr:hover { background: var(--soft); }
+    .content-table td {
+      padding: 12px 16px;
+      vertical-align: top;
+    }
+
+    /* Row pillar colors */
+    .row-spotlight td:first-child { border-left: 4px solid var(--spotlight); }
+    .row-edu       td:first-child { border-left: 4px solid var(--edu); }
+    .row-action    td:first-child { border-left: 4px solid var(--action); }
+
+    /* Date cell */
+    .date-cell { white-space: nowrap; }
+    .date-day {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--blue);
+      font-family: 'Raleway', sans-serif;
+    }
+    .date-weekday {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+    }
+
+    /* Pillar badge */
+    .pillar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pillar-spotlight { background: rgba(33,118,255,.12); color: var(--spotlight); }
+    .pillar-edu       { background: rgba(255,165,21,.15); color: #a36a10; }
+    .pillar-action    { background: rgba(227,23,62,.12);  color: var(--red-dark); }
+
+    /* Canal badge */
+    .canal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--soft);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    /* Format badge */
+    .format-badge {
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--blue);
+      color: #fff;
+    }
+
+    /* Milestone badge */
+    .milestone-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .milestone-feria       { background: rgba(255,165,21,.2);  color: var(--yellow-dark); border: 1px solid rgba(255,165,21,.4); }
+    .milestone-taller      { background: rgba(123,47,190,.12); color: #5b1f92;            border: 1px solid rgba(123,47,190,.3); }
+    .milestone-conferencia { background: rgba(14,165,160,.12); color: #0a7370;            border: 1px solid rgba(14,165,160,.3); }
+
+    /* Content idea cell */
+    .hook-text {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .body-text {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Action buttons in row */
+    .row-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .content-table tbody tr:hover .row-actions { opacity: 1; }
+    .icon-btn {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: all var(--transition);
+    }
+    .icon-btn-edit {
+      background: rgba(33,118,255,.1);
+      color: var(--blue);
+    }
+    .icon-btn-edit:hover { background: var(--blue); color: #fff; }
+    .icon-btn-del {
+      background: rgba(239,68,68,.1);
+      color: #ef4444;
+    }
+    .icon-btn-del:hover { background: #ef4444; color: #fff; }
+
+    /* ===== GRID VIEW ===== */
+    .calendar-header-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+    .cal-day-name {
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+    }
+    .cal-day-name.pub-day { color: var(--blue); font-weight: 800; font-family: 'Raleway', sans-serif; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-cell {
+      min-height: 110px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      padding: 8px;
+      position: relative;
+      transition: all var(--transition);
+      overflow: hidden;
+    }
+    .cal-cell.empty {
+      background: var(--soft);
+      opacity: .5;
+    }
+    .cal-cell:not(.empty):hover {
+      border-color: var(--blue);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+    .cal-cell.has-entry { cursor: pointer; }
+    .cal-cell.pub-monday    { border-left: 3px solid var(--spotlight); }
+    .cal-cell.pub-wednesday { border-left: 3px solid var(--edu); }
+    .cal-cell.pub-friday    { border-left: 3px solid var(--action); }
+    .cal-cell.milestone-feria-cell  { background: rgba(255,165,21,.06);  border-color: rgba(255,165,21,.4); }
+    .cal-cell.milestone-taller-cell { background: rgba(123,47,190,.06);  border-color: rgba(123,47,190,.3); }
+    .cal-cell.milestone-conf-cell   { background: rgba(14,165,160,.06);  border-color: rgba(14,165,160,.3); }
+
+    .cal-date-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .cal-date-num.today {
+      display: inline-flex;
+      width: 24px; height: 24px;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .cal-entry-card {
+      border-radius: 5px;
+      padding: 4px 7px;
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.3;
+      cursor: pointer;
+    }
+    .cal-entry-spotlight { background: rgba(33,118,255,.12); color: var(--spotlight); }
+    .cal-entry-edu       { background: rgba(255,165,21,.18);  color: #a36a10; }
+    .cal-entry-action    { background: rgba(227,23,62,.12);   color: var(--red-dark); }
+
+    .cal-milestone-tag {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 2px;
+    }
+    .cal-tag-feria      { background: rgba(255,165,21,.25);  color: var(--yellow-dark); }
+    .cal-tag-taller     { background: rgba(123,47,190,.18);  color: #5b1f92; }
+    .cal-tag-conferencia{ background: rgba(14,165,160,.18);  color: #0a7370; }
+
+    .cal-add-btn {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transition: opacity var(--transition);
+      cursor: pointer;
+      border: none;
+    }
+    .cal-cell:not(.empty):hover .cal-add-btn { opacity: 1; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,14,40,.6);
+      z-index: 500;
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      animation: modalIn .28s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes modalIn {
+      from { transform: scale(.92) translateY(20px); opacity: 0; }
+      to   { transform: scale(1)   translateY(0);    opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--blue);
+      font-family: 'Raleway', sans-serif;
+    }
+    .modal-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: #fee2e2; color: #ef4444; }
+
+    .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-muted);
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(33,118,255,.1);
+    }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+    .form-control::placeholder { color: var(--text-light); }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn-surface {
+      background: var(--soft);
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all var(--transition);
+    }
+    .btn-surface:hover { background: var(--border); color: var(--text); }
+    .btn-save {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Raleway', sans-serif;
+      box-shadow: 0 2px 10px rgba(33,118,255,.3);
+      transition: all var(--transition);
+    }
+    .btn-save:hover {
+      box-shadow: 0 4px 18px rgba(33,118,255,.45);
+      transform: translateY(-1px);
+    }
+
+    /* Modal milestone section */
+    .milestone-section {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(33,118,255,.05);
+      border: 1px solid rgba(33,118,255,.2);
+      border-radius: var(--radius-sm);
+    }
+    .milestone-section label {
+      color: var(--blue);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .checkbox-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .checkbox-label input { accent-color: var(--blue); }
+
+    /* ===== FOOTER ===== */
+    #app-footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 14px 24px;
+      margin-top: 32px;
+    }
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+    .stat-icon-blue  { background: rgba(33,118,255,.12); }
+    .stat-icon-orange{ background: rgba(255,165,21,.15); }
+    .stat-icon-green { background: rgba(123,47,190,.1); }
+    .stat-icon-teal  { background: rgba(14,165,160,.1); }
+    .stat-num {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--blue);
+      line-height: 1;
+      font-family: 'Raleway', sans-serif;
+    }
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .footer-actions { display: flex; gap: 8px; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: .5;
+    }
+    .empty-state h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .empty-state p { font-size: 13px; max-width: 340px; margin: 0 auto 20px; }
+
+    /* ===== TOAST ===== */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--blue);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideUp .25s ease forwards;
+      max-width: 320px;
+    }
+    .toast.success { background: #16a34a; }
+    .toast.warning { background: var(--yellow); }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* ===== SECTION TITLE ===== */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Raleway', sans-serif;
+    }
+    .section-count {
+      background: var(--blue);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    /* ===== LEGEND ===== */
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+    }
+    .legend-spotlight   { background: var(--spotlight); }
+    .legend-edu         { background: var(--edu); }
+    .legend-action      { background: var(--action); }
+    .legend-feria       { background: var(--yellow); }
+    .legend-taller      { background: var(--taller); }
+    .legend-conferencia { background: var(--conferencia); }
+
+    /* ===== CONFIRM DIALOG ===== */
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,14,40,.6);
+      z-index: 600;
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 28px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      animation: modalIn .22s ease;
+    }
+    .confirm-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    .confirm-box h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .confirm-box p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .confirm-actions { display: flex; gap: 8px; justify-content: center; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      #app-header { padding: 0 16px; }
+      .header-top { gap: 10px; }
+      .logo-text small { display: none; }
+      #main-content { padding: 16px; }
+      #filter-bar { padding: 8px 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .content-table { font-size: 12px; }
+      .content-table th, .content-table td { padding: 10px 10px; }
+    }
+    @media (max-width: 640px) {
+      .header-top { justify-content: center; }
+      .calendar-grid  { grid-template-columns: repeat(7, 1fr); gap: 2px; }
+      .cal-cell { min-height: 70px; padding: 4px; }
+      .cal-entry-card { font-size: 9px; padding: 2px 4px; }
+      .cal-date-num { font-size: 11px; }
+      .modal { max-height: 95vh; }
+      .modal-header, .modal-body, .modal-footer { padding: 14px 16px; }
+      .footer-stats { gap: 12px; }
+    }
+
+    /* ===== PILLAR INDICATOR DOTS in table ===== */
+    .pillar-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .dot-spotlight { background: var(--spotlight); }
+    .dot-edu       { background: var(--edu); }
+    .dot-action    { background: var(--action); }
+
+    /* Highlight rows */
+    .row-feria-highlight      { background: rgba(255,165,21,.05)  !important; }
+    .row-taller-highlight     { background: rgba(123,47,190,.05)  !important; }
+    .row-conferencia-highlight{ background: rgba(14,165,160,.05)  !important; }
+
+    /* ===== SUMMARY BAR (above filter bar) ===== */
+    #summary-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+    }
+    .summary-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .summary-stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .summary-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .summary-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--blue);
+      line-height: 1;
+      font-family: 'Raleway', sans-serif;
+    }
+    .summary-lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .summary-divider {
+      width: 1px; height: 32px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="app-header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-badge">IE</div>
+      <div class="logo-text">
+        <span>Innova ESAN</span>
+        <small>Content Calendar &mdash; Incubadora de Negocios</small>
+      </div>
+    </div>
+
+    <div class="month-nav" id="month-nav">
+      <button id="btn-prev-month" title="Mes anterior" aria-label="Mes anterior">&#8592;</button>
+      <div class="month-label" id="month-label">Cargando&hellip;</div>
+      <button id="btn-next-month" title="Mes siguiente" aria-label="Mes siguiente">&#8594;</button>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btn-add-entry" title="Agregar nueva publicaci&oacute;n">
+        &#43; Publicaci&oacute;n
+      </button>
+      <div class="view-toggle" role="group" aria-label="Modo de vista">
+        <button class="view-btn active" id="btn-view-table" title="Vista tabla" aria-pressed="true">
+          &#9776;
+        </button>
+        <button class="view-btn" id="btn-view-grid" title="Vista cuadr&iacute;cula" aria-pressed="false">
+          &#9633;
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== SUMMARY BAR ===== -->
+<div id="summary-bar">
+  <div class="summary-inner">
+    <div class="summary-stat">
+      <div class="summary-icon stat-icon-blue">&#128197;</div>
+      <div>
+        <div class="summary-num" id="sum-total">0</div>
+        <div class="summary-lbl">Publicaciones del mes</div>
+      </div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-stat">
+      <div class="summary-icon stat-icon-orange">&#127882;</div>
+      <div>
+        <div class="summary-num" id="sum-ferias">0</div>
+        <div class="summary-lbl">Ferias de Emprendimiento</div>
+      </div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-stat">
+      <div class="summary-icon stat-icon-green">&#127979;</div>
+      <div>
+        <div class="summary-num" id="sum-talleres">0</div>
+        <div class="summary-lbl">Talleres</div>
+      </div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-stat">
+      <div class="summary-icon stat-icon-teal">&#127908;</div>
+      <div>
+        <div class="summary-num" id="sum-conferencias">0</div>
+        <div class="summary-lbl">Conferencias</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FILTER BAR ===== -->
+<div id="filter-bar">
+  <span class="filter-label">Canal</span>
+  <div class="filter-chips" id="filter-canal">
+    <button class="chip active" data-value="">Todos</button>
+    <button class="chip" data-value="Instagram">&#128247; Instagram</button>
+    <button class="chip" data-value="WhatsApp">&#128242; WhatsApp</button>
+    <button class="chip" data-value="LinkedIn">&#128101; LinkedIn</button>
+    <button class="chip" data-value="YouTube">&#9654; YouTube</button>
+    <button class="chip" data-value="Portal DPA">&#127760; DPA</button>
+    <button class="chip" data-value="Portal Pregrado">&#127891; Pregrado</button>
+    <button class="chip" data-value="Portal Posgrado">&#127891; Posgrado</button>
+  </div>
+  <div class="filter-divider"></div>
+  <span class="filter-label">Pilar</span>
+  <div class="filter-chips" id="filter-pilar">
+    <button class="chip active" data-value="">Todos</button>
+    <button class="chip spotlight" data-value="Innova Spotlight">&#128173; Spotlight</button>
+    <button class="chip edu"       data-value="Edu-Innovation">&#128218; Edu</button>
+    <button class="chip action"    data-value="Action &amp; Community">&#127881; Action</button>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main id="main-content">
+  <!-- TABLE VIEW -->
+  <div id="view-table">
+    <div class="section-header">
+      <div class="section-title">
+        &#128197; Publicaciones del Mes
+        <span class="section-count" id="count-label">0</span>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="content-table" id="content-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Canal</th>
+            <th>Pilar</th>
+            <th>Hook del Contenido</th>
+            <th>Cuerpo / Idea</th>
+            <th>Formato</th>
+            <th>Objetivo</th>
+            <th>Hitos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="9">
+            <div class="empty-state">
+              <div class="empty-state-icon">&#128197;</div>
+              <h3>Sin publicaciones</h3>
+              <p>Usa el bot&oacute;n &ldquo;+ Mes&rdquo; para generar autom&aacute;ticamente las publicaciones del mes o agrega una manualmente.</p>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GRID VIEW -->
+  <div id="view-grid">
+    <div class="section-header">
+      <div class="section-title">&#128197; Vista Cuadr&iacute;cula</div>
+    </div>
+    <div class="calendar-header-row" id="cal-header-row">
+      <div class="cal-day-name">Dom</div>
+      <div class="cal-day-name pub-day">Lun</div>
+      <div class="cal-day-name">Mar</div>
+      <div class="cal-day-name pub-day">Mi&eacute;</div>
+      <div class="cal-day-name">Jue</div>
+      <div class="cal-day-name pub-day">Vie</div>
+      <div class="cal-day-name">S&aacute;b</div>
+    </div>
+    <div class="calendar-grid" id="calendar-grid"></div>
+  </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer id="app-footer">
+  <div class="footer-inner">
+    <div class="footer-stats">
+      <div class="stat-item">
+        <div class="stat-icon stat-icon-blue">&#128197;</div>
+        <div>
+          <div class="stat-num" id="footer-total">0</div>
+          <div class="stat-lbl">Publicaciones</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon stat-icon-orange">&#127882;</div>
+        <div>
+          <div class="stat-num" id="footer-ferias">0</div>
+          <div class="stat-lbl">Ferias de Emprendimiento</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon stat-icon-green">&#127979;</div>
+        <div>
+          <div class="stat-num" id="footer-talleres">0</div>
+          <div class="stat-lbl">Talleres</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon stat-icon-teal">&#127908;</div>
+        <div>
+          <div class="stat-num" id="footer-conferencias">0</div>
+          <div class="stat-lbl">Conferencias</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-actions">
+      <button class="btn btn-outline" id="btn-export-csv">&#8659; Exportar CSV</button>
+      <button class="btn btn-outline" id="btn-export-pdf">&#128438; Exportar PDF</button>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== ENTRY MODAL ===== -->
+<div class="modal-overlay" id="entry-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title-text">Nueva Publicaci&oacute;n</div>
+        <div class="modal-subtitle">Completa los campos para agregar al calendario</div>
+      </div>
+      <button class="modal-close" id="modal-close-btn" aria-label="Cerrar modal">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <form id="entry-form" novalidate>
+        <input type="hidden" id="entry-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="field-fecha">Fecha *</label>
+            <input type="date" id="field-fecha" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="field-canal">Canal *</label>
+            <select id="field-canal" class="form-control" required>
+              <option value="">Seleccionar canal&hellip;</option>
+              <option value="Instagram">&#128247; Instagram</option>
+              <option value="WhatsApp">&#128242; WhatsApp</option>
+              <option value="LinkedIn">&#128101; LinkedIn</option>
+              <option value="YouTube">&#9654; YouTube</option>
+              <option value="Portal DPA">&#127760; Portal DPA</option>
+              <option value="Portal Pregrado">&#127891; Portal Pregrado</option>
+              <option value="Portal Posgrado">&#127891; Portal Posgrado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-pilar">Pilar de Contenido *</label>
+            <select id="field-pilar" class="form-control" required>
+              <option value="">Seleccionar pilar&hellip;</option>
+              <option value="Innova Spotlight">&#128173; Innova Spotlight (Lunes)</option>
+              <option value="Edu-Innovation">&#128218; Edu-Innovation (Mi&eacute;rcoles)</option>
+              <option value="Action &amp; Community">&#127881; Action &amp; Community (Viernes)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-formato">Formato</label>
+            <select id="field-formato" class="form-control">
+              <option value="">Seleccionar formato&hellip;</option>
+              <option value="Reel">Reel</option>
+              <option value="Carrusel">Carrusel</option>
+              <option value="Post">Post</option>
+              <option value="Story">Story</option>
+              <option value="Tutorial">Tutorial</option>
+              <option value="Nota de prensa">Nota de prensa</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="field-hook">Hook del Contenido</label>
+            <input type="text" id="field-hook" class="form-control" placeholder="Ej: &iquest;Sabias que el 80% de los emprendedores...?" />
+          </div>
+          <div class="form-group full">
+            <label for="field-body">Cuerpo / Idea del Contenido</label>
+            <textarea id="field-body" class="form-control" rows="3" placeholder="Describe la idea, estructura o puntos clave del contenido&hellip;"></textarea>
+          </div>
+          <div class="form-group full">
+            <label for="field-objetivo">Objetivo</label>
+            <input type="text" id="field-objetivo" class="form-control" placeholder="Ej: Aumentar el engagement, generar leads, branding..." />
+          </div>
+        </div>
+        <div class="milestone-section">
+          <label>&#127881; Hitos asociados (opcional)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="check-feria" />
+              &#127882; Feria de Emprendimiento
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="check-taller" />
+              &#127979; Taller
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="check-conferencia" />
+              &#127908; Conferencia
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="check-evento" />
+              &#127881; Evento
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-surface" id="modal-cancel-btn">Cancelar</button>
+      <button class="btn-save" id="modal-save-btn">&#10003; Guardar Publicaci&oacute;n</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM DELETE DIALOG ===== -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">&#128465;</div>
+    <h3>Eliminar publicaci&oacute;n</h3>
+    <p>Esta acci&oacute;n no se puede deshacer. &iquest;Est&aacute;s segur@ de que deseas eliminar esta entrada?</p>
+    <div class="confirm-actions">
+      <button class="btn-surface" id="confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-delete">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+'use strict';
+
+/* ========================================================
+   SUPABASE CLIENT
+   ======================================================== */
+const SUPABASE_URL = 'https://lhmhgbjyhhuwhlyaaxtk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxobWhnYmp5aGh1d2hseWFheHRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjk2NzksImV4cCI6MjA5MTc0NTY3OX0.8QC95PiQ25RJynxcqCW0HW4wzdKCkknozlHUbcslnwc';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const TABLE = 'contenido_calendario';
+
+/* ========================================================
+   DATA & CONSTANTS
+   ======================================================== */
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS_ES   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+const PILLAR_MAP = {
+  1: 'Innova Spotlight',
+  3: 'Edu-Innovation',
+  5: 'Action & Community',
+};
+
+const PILLAR_KEY = {
+  'Innova Spotlight':  'spotlight',
+  'Edu-Innovation':    'edu',
+  'Action & Community':'action',
+};
+
+const CANAL_ICONS = {
+  'Instagram':      '&#128247;',
+  'WhatsApp':       '&#128242;',
+  'LinkedIn':       '&#128101;',
+  'YouTube':        '&#9654;',
+  'Portal DPA':     '&#127760;',
+  'Portal Pregrado':'&#127891;',
+  'Portal Posgrado':'&#127891;',
+};
+
+/* ========================================================
+   SCHEMA MAPPING
+   Supabase column → app field
+   ======================================================== */
+
+// Convert a Supabase row → app entry object
+function rowToEntry(row) {
+  const hito = row.tipo_hito || '';
+  return {
+    id:           row.id,
+    fecha:        row.fecha_real   || '',
+    canal:        Array.isArray(row.canales) ? (row.canales[0] || '') : (row.canales || ''),
+    pilar:        row.pilar        || '',
+    hook:         row.hook         || '',
+    body:         row.cuerpo       || '',
+    formato:      row.formato      || '',
+    objetivo:     row.objetivo     || '',
+    estado:       row.estado       || 'Borrador',
+    imagen_url:   row.imagen_url   || '',
+    creado_por:   row.creado_por   || '',
+    isFeria:      hito.includes('Feria'),
+    isTaller:     hito.includes('Taller'),
+    isConferencia:hito.includes('Conferencia'),
+    isEvento:     hito.includes('Evento'),
+  };
+}
+
+// Convert an app entry → Supabase row object
+function entryToRow(entry, mesKey) {
+  const hitoArr = [
+    entry.isFeria       ? 'Feria'       : null,
+    entry.isTaller      ? 'Taller'      : null,
+    entry.isConferencia ? 'Conferencia' : null,
+    entry.isEvento      ? 'Evento'      : null,
+  ].filter(Boolean);
+
+  const [y, m, d] = (entry.fecha || '').split('-').map(Number);
+  const dateObj   = entry.fecha ? new Date(y, m-1, d) : null;
+  const fechaTexto = dateObj
+    ? `${DAYS_ES[dateObj.getDay()]} ${d} de ${MONTHS_ES[m-1]} ${y}`
+    : '';
+
+  const row = {
+    mes:        mesKey,
+    fecha_texto:fechaTexto,
+    fecha_real: entry.fecha || null,
+    canales:    entry.canal ? [entry.canal] : [],
+    pilar:      entry.pilar      || null,
+    hook:       entry.hook       || null,
+    cuerpo:     entry.body       || null,
+    formato:    entry.formato    || null,
+    objetivo:   entry.objetivo   || null,
+    estado:     entry.estado     || 'Borrador',
+    imagen_url: entry.imagen_url || null,
+    creado_por: entry.creado_por || null,
+    tipo_hito:  hitoArr.join(',') || null,
+  };
+
+  // Only include id for upsert if it's a valid UUID
+  if (entry.id && /^[0-9a-f-]{36}$/i.test(entry.id)) {
+    row.id = entry.id;
+  }
+  return row;
+}
+
+/* ========================================================
+   STATE
+   ======================================================== */
+let state = {
+  currentYear:  new Date().getFullYear(),
+  currentMonth: new Date().getMonth(),
+  view:         'table',
+  filterCanal:  '',
+  filterPilar:  '',
+  entries:      {},   // local cache { 'YYYY-MM': [entry, ...] }
+  deleteId:     null,
+  loading:      false,
+};
+
+function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+function currentKey()   { return monthKey(state.currentYear, state.currentMonth); }
+
+/* ========================================================
+   LOADING INDICATOR
+   ======================================================== */
+function setLoading(on) {
+  state.loading = on;
+  const main = document.getElementById('main-content');
+  if (on) {
+    if (!document.getElementById('loading-overlay')) {
+      const ov = document.createElement('div');
+      ov.id = 'loading-overlay';
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,.65);z-index:400;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);';
+      ov.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div style="width:40px;height:40px;border:4px solid #DDE3EE;border-top-color:#2176FF;border-radius:50%;animation:spin .7s linear infinite;"></div><span style="font-family:Raleway,sans-serif;font-weight:700;color:#2176FF;font-size:14px;">Cargando...</span></div>';
+      if (!document.getElementById('spin-style')) {
+        const st = document.createElement('style');
+        st.id = 'spin-style';
+        st.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(st);
+      }
+      document.body.appendChild(ov);
+    }
+  } else {
+    const ov = document.getElementById('loading-overlay');
+    if (ov) ov.remove();
+  }
+}
+
+/* ========================================================
+   SUPABASE DATA LAYER
+   ======================================================== */
+
+// Load all rows for the current month from Supabase
+async function loadMonthData() {
+  const key = currentKey();
+  setLoading(true);
+  try {
+    const { data, error } = await db
+      .from(TABLE)
+      .select('*')
+      .eq('mes', key)
+      .order('fecha_real', { ascending: true });
+
+    if (error) throw error;
+    state.entries[key] = (data || []).map(rowToEntry);
+  } catch (err) {
+    console.error('Supabase load error:', err);
+    showToast('&#9888; Error al cargar datos: ' + (err.message || err), 'warning');
+    state.entries[key] = state.entries[key] || [];
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Upsert a single entry
+async function saveEntry(entry) {
+  const key = currentKey();
+  const row = entryToRow(entry, key);
+  try {
+    const { data, error } = await db
+      .from(TABLE)
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Update local cache with the returned row (gets real UUID)
+    const saved = rowToEntry(data);
+    if (!state.entries[key]) state.entries[key] = [];
+    const idx = state.entries[key].findIndex(e => e.id === saved.id || e.id === entry.id);
+    if (idx >= 0) state.entries[key][idx] = saved;
+    else          state.entries[key].push(saved);
+
+    return saved;
+  } catch (err) {
+    console.error('Supabase save error:', err);
+    showToast('&#9888; Error al guardar: ' + (err.message || err), 'warning');
+    return null;
+  }
+}
+
+// Delete a single entry by UUID
+async function deleteEntry(id) {
+  const key = currentKey();
+  try {
+    const { error } = await db.from(TABLE).delete().eq('id', id);
+    if (error) throw error;
+    state.entries[key] = (state.entries[key] || []).filter(e => e.id !== id);
+  } catch (err) {
+    console.error('Supabase delete error:', err);
+    showToast('&#9888; Error al eliminar: ' + (err.message || err), 'warning');
+  }
+}
+
+/* ========================================================
+   ENTRY HELPERS
+   ======================================================== */
+function getEntries() {
+  return (state.entries[currentKey()] || []).slice();
+}
+
+function getFilteredEntries() {
+  let list = getEntries();
+  if (state.filterCanal) list = list.filter(e => e.canal === state.filterCanal);
+  if (state.filterPilar) list = list.filter(e => e.pilar === state.filterPilar);
+  return list.sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
+}
+
+/* ========================================================
+   AUTO-POPULATE MONTH
+   ======================================================== */
+async function autoPopulateMonth() {
+  const key = currentKey();
+  const y = state.currentYear, m = state.currentMonth;
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const existing    = getEntries().map(e => e.fecha);
+  const newEntries  = [];
+
+  let feriaInserted = false;
+  let eventsInserted = 0;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow     = new Date(y, m, d).getDay();
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    if (dow === 1 || dow === 3 || dow === 5) {
+      if (existing.includes(dateStr)) continue;
+
+      const pilar = PILLAR_MAP[dow];
+      let isFeria = false, isTaller = false, isConferencia = false;
+
+      if (dow === 5 && !feriaInserted) { isFeria = true; feriaInserted = true; }
+      if (dow === 3 && eventsInserted < 2) {
+        if (eventsInserted === 0) isTaller = true;
+        else isConferencia = true;
+        eventsInserted++;
+      }
+
+      newEntries.push({
+        id:    null, // let Supabase generate UUID
+        fecha: dateStr,
+        canal: 'Instagram',
+        pilar,
+        hook:     '',
+        body:     '',
+        formato:  dow === 1 ? 'Reel' : dow === 3 ? 'Carrusel' : 'Post',
+        objetivo: '',
+        estado:   'Borrador',
+        isFeria,
+        isTaller,
+        isConferencia,
+        isEvento: false,
+      });
+    }
+  }
+
+  if (!newEntries.length) return 0;
+
+  // Bulk insert
+  const rows = newEntries.map(e => entryToRow(e, key));
+  // Remove null id keys so Supabase auto-generates UUIDs
+  rows.forEach(r => { if (!r.id) delete r.id; });
+
+  setLoading(true);
+  try {
+    const { data, error } = await db.from(TABLE).insert(rows).select();
+    if (error) throw error;
+    if (!state.entries[key]) state.entries[key] = [];
+    (data || []).forEach(row => state.entries[key].push(rowToEntry(row)));
+    return (data || []).length;
+  } catch (err) {
+    console.error('Supabase bulk insert error:', err);
+    showToast('&#9888; Error al generar mes: ' + (err.message || err), 'warning');
+    return 0;
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ========================================================
+   RENDER HELPERS
+   ======================================================== */
+function pillarKey(pilar) { return PILLAR_KEY[pilar] || 'spotlight'; }
+
+function canalIconHtml(canal) {
+  return CANAL_ICONS[canal] || '&#128226;';
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return { day: '', weekday: '', full: '' };
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m-1, d);
+  return { day: d, weekday: DAYS_ES[date.getDay()], full: dateStr };
+}
+
+function safe(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ========================================================
+   RENDER TABLE VIEW
+   ======================================================== */
+function renderTable() {
+  const tbody  = document.getElementById('table-body');
+  const entries = getFilteredEntries();
+
+  document.getElementById('count-label').textContent = entries.length;
+
+  if (!entries.length) {
+    tbody.innerHTML = `<tr><td colspan="9">
+      <div class="empty-state">
+        <div class="empty-state-icon">&#128197;</div>
+        <h3>Sin publicaciones</h3>
+        <p>Haz clic en &ldquo;+ Generar Mes&rdquo; para crear autom&aacute;ticamente las publicaciones o agrega una manualmente.</p>
+        <button class="btn btn-primary" onclick="addMonthAndRender()">+ Generar Mes</button>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = entries.map(e => {
+    const pkey = pillarKey(e.pilar);
+    const fd   = formatDate(e.fecha);
+    const milestones = [];
+    if (e.isFeria)       milestones.push('<span class="milestone-badge milestone-feria">&#127882; Feria</span>');
+    if (e.isTaller)      milestones.push('<span class="milestone-badge milestone-taller">&#127979; Taller</span>');
+    if (e.isConferencia) milestones.push('<span class="milestone-badge milestone-conferencia">&#127908; Conferencia</span>');
+    if (e.isEvento)      milestones.push('<span class="milestone-badge milestone-evento">&#127881; Evento</span>');
+
+    const rowClass = [
+      `row-${pkey}`,
+      e.isFeria       ? 'row-feria-highlight'      : '',
+      e.isTaller      ? 'row-taller-highlight'     : '',
+      e.isConferencia ? 'row-conferencia-highlight': '',
+    ].filter(Boolean).join(' ');
+
+    return `<tr class="${rowClass}" data-id="${safe(e.id)}">
+      <td class="date-cell">
+        <div class="date-day">${fd.day}</div>
+        <div class="date-weekday">${safe(fd.weekday)}</div>
+      </td>
+      <td>
+        <span class="canal-badge">${canalIconHtml(e.canal)} ${safe(e.canal)}</span>
+      </td>
+      <td>
+        <span class="pillar-badge pillar-${pkey}">
+          <span class="pillar-dot dot-${pkey}"></span>
+          ${safe(e.pilar)}
+        </span>
+      </td>
+      <td>
+        <div class="hook-text">${safe(e.hook) || '<em style="color:var(--text-light)">Sin hook</em>'}</div>
+      </td>
+      <td>
+        <div class="body-text">${safe(e.body) || '<em style="color:var(--text-light)">&mdash;</em>'}</div>
+      </td>
+      <td>
+        ${e.formato ? `<span class="format-badge">${safe(e.formato)}</span>` : '<span style="color:var(--text-light)">&mdash;</span>'}
+      </td>
+      <td style="max-width:160px;">
+        <div class="body-text">${safe(e.objetivo) || '<em style="color:var(--text-light)">&mdash;</em>'}</div>
+      </td>
+      <td>${milestones.join(' ') || '<span style="color:var(--text-light)">&mdash;</span>'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn icon-btn-edit" onclick="openEditModal('${safe(e.id)}')" title="Editar">&#9999;</button>
+          <button class="icon-btn icon-btn-del"  onclick="confirmDelete('${safe(e.id)}')" title="Eliminar">&#128465;</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ========================================================
+   RENDER GRID VIEW
+   ======================================================== */
+function renderGrid() {
+  const grid = document.getElementById('calendar-grid');
+  const y = state.currentYear, m = state.currentMonth;
+  const firstDay    = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today       = new Date();
+  const todayStr    = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  const allEntries = (state.entries[currentKey()] || []);
+  const byDate = {};
+  allEntries.forEach(e => {
+    if (!byDate[e.fecha]) byDate[e.fecha] = [];
+    byDate[e.fecha].push(e);
+  });
+
+  const filterEntries = list => {
+    let out = list || [];
+    if (state.filterCanal) out = out.filter(e => e.canal === state.filterCanal);
+    if (state.filterPilar) out = out.filter(e => e.pilar === state.filterPilar);
+    return out;
+  };
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-cell empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow     = new Date(y, m, d).getDay();
+    const isToday = dateStr === todayStr;
+    const raw     = byDate[dateStr] || [];
+    const shown   = filterEntries(raw);
+
+    const hasFeria       = raw.some(e => e.isFeria);
+    const hasTaller      = raw.some(e => e.isTaller);
+    const hasConferencia = raw.some(e => e.isConferencia);
+    const hasEvento      = raw.some(e => e.isEvento);
+
+    const cls = [
+      'cal-cell',
+      dow === 1 ? 'pub-monday'    : '',
+      dow === 3 ? 'pub-wednesday' : '',
+      dow === 5 ? 'pub-friday'    : '',
+      hasFeria       ? 'milestone-feria-cell'  : '',
+      hasTaller      ? 'milestone-taller-cell' : '',
+      hasConferencia ? 'milestone-conf-cell'   : '',
+      shown.length   ? 'has-entry'             : '',
+    ].filter(Boolean).join(' ');
+
+    const dateNum = isToday
+      ? `<div class="cal-date-num today">${d}</div>`
+      : `<div class="cal-date-num">${d}</div>`;
+
+    const tags = [
+      hasFeria       ? '<span class="cal-milestone-tag cal-tag-feria">Feria</span>'             : '',
+      hasTaller      ? '<span class="cal-milestone-tag cal-tag-taller">Taller</span>'           : '',
+      hasConferencia ? '<span class="cal-milestone-tag cal-tag-conferencia">Conf.</span>'       : '',
+      hasEvento      ? '<span class="cal-milestone-tag cal-tag-evento">Evento</span>'           : '',
+    ].join('');
+
+    const cards = shown.slice(0,2).map(e => {
+      const pk = pillarKey(e.pilar);
+      const txt = safe(e.hook || e.pilar);
+      return `<div class="cal-entry-card cal-entry-${pk}" onclick="openEditModal('${safe(e.id)}')" title="${txt}">${txt.slice(0,30)}${txt.length>30?'&hellip;':''}</div>`;
+    }).join('');
+
+    html += `<div class="${cls}" data-date="${dateStr}">${dateNum}${tags}${cards}<button class="cal-add-btn" onclick="openNewModalForDate('${dateStr}')" title="Agregar">+</button></div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+/* ========================================================
+   RENDER FOOTER / SUMMARY BAR
+   ======================================================== */
+function renderFooter() {
+  const entries      = getEntries();
+  const total        = entries.length;
+  const ferias       = entries.filter(e => e.isFeria).length;
+  const talleres     = entries.filter(e => e.isTaller).length;
+  const conferencias = entries.filter(e => e.isConferencia).length;
+
+  // Summary bar (top)
+  const st = id => document.getElementById(id);
+  if (st('sum-total'))        st('sum-total').textContent        = total;
+  if (st('sum-ferias'))       st('sum-ferias').textContent       = ferias;
+  if (st('sum-talleres'))     st('sum-talleres').textContent     = talleres;
+  if (st('sum-conferencias')) st('sum-conferencias').textContent = conferencias;
+
+  // Footer
+  if (st('footer-total'))        st('footer-total').textContent        = total;
+  if (st('footer-ferias'))       st('footer-ferias').textContent       = ferias;
+  if (st('footer-talleres'))     st('footer-talleres').textContent     = talleres;
+  if (st('footer-conferencias')) st('footer-conferencias').textContent = conferencias;
+}
+
+/* ========================================================
+   RENDER MONTH LABEL
+   ======================================================== */
+function renderMonthLabel() {
+  const label = `${MONTHS_ES[state.currentMonth]} ${state.currentYear}`;
+  document.getElementById('month-label').textContent = label;
+  document.title = `Innova ESAN \u2014 ${label}`;
+}
+
+/* ========================================================
+   MASTER RENDER  (synchronous — uses local cache)
+   ======================================================== */
+function render() {
+  renderMonthLabel();
+  renderTable();
+  renderGrid();
+  renderFooter();
+}
+
+/* ========================================================
+   VIEW TOGGLE
+   ======================================================== */
+function setView(view) {
+  state.view = view;
+  document.getElementById('view-table').style.display = view === 'table' ? 'block' : 'none';
+  document.getElementById('view-grid').style.display  = view === 'grid'  ? 'block' : 'none';
+  document.getElementById('btn-view-table').classList.toggle('active', view === 'table');
+  document.getElementById('btn-view-grid').classList.toggle('active',  view === 'grid');
+  document.getElementById('btn-view-table').setAttribute('aria-pressed', view === 'table');
+  document.getElementById('btn-view-grid').setAttribute('aria-pressed',  view === 'grid');
+}
+
+/* ========================================================
+   MODAL
+   ======================================================== */
+let modalMode = 'new';
+
+function openNewModal() {
+  modalMode = 'new';
+  document.getElementById('modal-title-text').textContent = 'Nueva Publicaci\u00f3n';
+  document.getElementById('entry-form').reset();
+  document.getElementById('entry-id').value = '';
+  const now = new Date();
+  if (now.getFullYear() === state.currentYear && now.getMonth() === state.currentMonth) {
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    document.getElementById('field-fecha').value = ds;
+    autofillPillarFromDate(ds);
+  }
+  openModal();
+}
+
+function openNewModalForDate(dateStr) {
+  openNewModal();
+  document.getElementById('field-fecha').value = dateStr;
+  autofillPillarFromDate(dateStr);
+}
+
+function openEditModal(id) {
+  const entry = getEntries().find(e => e.id === id);
+  if (!entry) return;
+  modalMode = 'edit';
+  document.getElementById('modal-title-text').textContent = 'Editar Publicaci\u00f3n';
+  document.getElementById('entry-id').value        = entry.id;
+  document.getElementById('field-fecha').value     = entry.fecha;
+  document.getElementById('field-canal').value     = entry.canal;
+  document.getElementById('field-pilar').value     = entry.pilar;
+  document.getElementById('field-formato').value   = entry.formato;
+  document.getElementById('field-hook').value      = entry.hook;
+  document.getElementById('field-body').value      = entry.body;
+  document.getElementById('field-objetivo').value  = entry.objetivo;
+  document.getElementById('check-feria').checked        = !!entry.isFeria;
+  document.getElementById('check-taller').checked       = !!entry.isTaller;
+  document.getElementById('check-conferencia').checked  = !!entry.isConferencia;
+  document.getElementById('check-evento').checked       = !!entry.isEvento;
+  openModal();
+}
+
+function openModal() {
+  document.getElementById('entry-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('field-fecha').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('entry-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function autofillPillarFromDate(dateStr) {
+  if (!dateStr) return;
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dow    = new Date(y, m-1, d).getDay();
+  const pilar  = PILLAR_MAP[dow] || '';
+  if (pilar) document.getElementById('field-pilar').value = pilar;
+}
+
+async function saveModalEntry() {
+  const fecha       = document.getElementById('field-fecha').value;
+  const canal       = document.getElementById('field-canal').value;
+  const pilar       = document.getElementById('field-pilar').value;
+  const formato     = document.getElementById('field-formato').value;
+  const hook        = document.getElementById('field-hook').value.trim();
+  const body        = document.getElementById('field-body').value.trim();
+  const objetivo    = document.getElementById('field-objetivo').value.trim();
+  const isFeria       = document.getElementById('check-feria').checked;
+  const isTaller      = document.getElementById('check-taller').checked;
+  const isConferencia = document.getElementById('check-conferencia').checked;
+  const isEvento      = document.getElementById('check-evento').checked;
+
+  if (!fecha || !canal || !pilar) {
+    showToast('Por favor completa Fecha, Canal y Pilar.', 'warning');
+    return;
+  }
+
+  const [fy, fm] = fecha.split('-').map(Number);
+  if (fy !== state.currentYear || fm-1 !== state.currentMonth) {
+    showToast('La fecha no corresponde al mes actual.', 'warning');
+    return;
+  }
+
+  const idVal = document.getElementById('entry-id').value || null;
+  const entry = {
+    id: idVal, fecha, canal, pilar, formato, hook, body, objetivo,
+    isFeria, isTaller, isConferencia, isEvento,
+    estado: 'Borrador',
+  };
+
+  closeModal();
+  const saved = await saveEntry(entry);
+  if (saved) {
+    render();
+    showToast(modalMode === 'new' ? '&#10003; Publicaci\u00f3n guardada.' : '&#10003; Publicaci\u00f3n actualizada.', 'success');
+  }
+}
+
+/* ========================================================
+   CONFIRM DELETE
+   ======================================================== */
+function confirmDelete(id) {
+  state.deleteId = id;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+
+function closeConfirm() {
+  state.deleteId = null;
+  document.getElementById('confirm-overlay').classList.remove('open');
+}
+
+async function doDelete() {
+  if (!state.deleteId) return;
+  const id = state.deleteId;
+  closeConfirm();
+  await deleteEntry(id);
+  render();
+  showToast('&#128465; Publicaci\u00f3n eliminada.', 'warning');
+}
+
+/* ========================================================
+   FILTERS
+   ======================================================== */
+function setupFilters() {
+  document.getElementById('filter-canal').addEventListener('click', e => {
+    const chip = e.target.closest('[data-value]');
+    if (!chip) return;
+    document.querySelectorAll('#filter-canal .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    state.filterCanal = chip.dataset.value;
+    render();
+  });
+  document.getElementById('filter-pilar').addEventListener('click', e => {
+    const chip = e.target.closest('[data-value]');
+    if (!chip) return;
+    document.querySelectorAll('#filter-pilar .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    state.filterPilar = chip.dataset.value;
+    render();
+  });
+}
+
+/* ========================================================
+   EXPORT CSV
+   ======================================================== */
+function exportCSV() {
+  const entries = getFilteredEntries();
+  if (!entries.length) { showToast('No hay publicaciones para exportar.', 'warning'); return; }
+  const headers = ['Fecha','Dia','Canal','Pilar','Hook','Cuerpo','Formato','Objetivo','Hitos','Estado'];
+  const rows = entries.map(e => {
+    const fd = formatDate(e.fecha);
+    const hitos = [e.isFeria&&'Feria',e.isTaller&&'Taller',e.isConferencia&&'Conferencia',e.isEvento&&'Evento'].filter(Boolean).join(';');
+    return [
+      e.fecha, fd.weekday, e.canal, e.pilar,
+      `"${(e.hook||'').replace(/"/g,'""')}"`,
+      `"${(e.body||'').replace(/"/g,'""')}"`,
+      e.formato,
+      `"${(e.objetivo||'').replace(/"/g,'""')}"`,
+      hitos,
+      e.estado || 'Borrador',
+    ].join(',');
+  });
+  const csv  = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `innova-esan-${currentKey()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('&#8659; CSV exportado correctamente.', 'success');
+}
+
+/* ========================================================
+   EXPORT PDF
+   ======================================================== */
+function exportPDF() { window.print(); }
+
+/* ========================================================
+   TOAST
+   ======================================================== */
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .3s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 350);
+  }, 3200);
+}
+
+/* ========================================================
+   MONTH NAVIGATION
+   ======================================================== */
+async function goToMonth(y, m) {
+  state.currentYear  = y;
+  state.currentMonth = m;
+  renderMonthLabel(); // update label immediately
+  await loadMonthData();
+  render();
+}
+
+function prevMonth() {
+  let m = state.currentMonth - 1, y = state.currentYear;
+  if (m < 0) { m = 11; y--; }
+  goToMonth(y, m);
+}
+
+function nextMonth() {
+  let m = state.currentMonth + 1, y = state.currentYear;
+  if (m > 11) { m = 0; y++; }
+  goToMonth(y, m);
+}
+
+async function addMonth() {
+  const count = await autoPopulateMonth();
+  if (count === 0) {
+    showToast('&#8505; El mes ya tiene entradas. Puedes editar individualmente.', 'warning');
+  } else {
+    showToast(`&#10003; ${count} publicaciones generadas para ${MONTHS_ES[state.currentMonth]} ${state.currentYear}.`, 'success');
+  }
+  render();
+}
+
+function addMonthAndRender() { addMonth(); }
+
+/* ========================================================
+   EVENT LISTENERS
+   ======================================================== */
+function setupListeners() {
+  document.getElementById('btn-prev-month').addEventListener('click', prevMonth);
+  document.getElementById('btn-next-month').addEventListener('click', nextMonth);
+  document.getElementById('btn-add-entry').addEventListener('click', openNewModal);
+  document.getElementById('btn-view-table').addEventListener('click', () => setView('table'));
+  document.getElementById('btn-view-grid').addEventListener('click',  () => setView('grid'));
+  document.getElementById('modal-close-btn').addEventListener('click',  closeModal);
+  document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+  document.getElementById('modal-save-btn').addEventListener('click',   saveModalEntry);
+  document.getElementById('field-fecha').addEventListener('change', e => autofillPillarFromDate(e.target.value));
+  document.getElementById('entry-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('entry-modal')) closeModal();
+  });
+  document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+  document.getElementById('confirm-delete').addEventListener('click', doDelete);
+  document.getElementById('confirm-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-overlay')) closeConfirm();
+  });
+  document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+  document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+  });
+}
+
+/* ========================================================
+   INIT
+   ======================================================== */
+async function init() {
+  setupFilters();
+  setupListeners();
+  setView('table');
+  renderMonthLabel();
+  await loadMonthData();
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
