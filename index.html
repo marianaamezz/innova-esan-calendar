@@ -403,6 +403,56 @@
       border: 1px solid var(--border);
       white-space: nowrap;
     }
+    .canal-badges-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    /* Multi-canal picker in modal */
+    .canal-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      cursor: default;
+    }
+    .canal-picker:focus-within {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(33,118,255,.1);
+    }
+    .canal-picker-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .canal-picker-item input[type="checkbox"] {
+      display: none;
+    }
+    .canal-picker-item:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(33,118,255,.06);
+    }
+    .canal-picker-item.selected {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
 
     /* Format badge */
     .format-badge {
@@ -1233,18 +1283,38 @@
             <label for="field-fecha">Fecha *</label>
             <input type="date" id="field-fecha" class="form-control" required />
           </div>
-          <div class="form-group">
-            <label for="field-canal">Canal *</label>
-            <select id="field-canal" class="form-control" required>
-              <option value="">Seleccionar canal&hellip;</option>
-              <option value="Instagram">&#128247; Instagram</option>
-              <option value="WhatsApp">&#128242; WhatsApp</option>
-              <option value="LinkedIn">&#128101; LinkedIn</option>
-              <option value="YouTube">&#9654; YouTube</option>
-              <option value="Portal DPA">&#127760; Portal DPA</option>
-              <option value="Portal Pregrado">&#127891; Portal Pregrado</option>
-              <option value="Portal Posgrado">&#127891; Portal Posgrado</option>
-            </select>
+          <div class="form-group full">
+            <label>Canal * <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-light)">(elige uno o m&aacute;s)</span></label>
+            <div class="canal-picker" id="canal-picker" role="group" aria-label="Seleccionar canales">
+              <label class="canal-picker-item" id="canal-lbl-instagram">
+                <input type="checkbox" value="Instagram" class="canal-check" />
+                &#128247; Instagram
+              </label>
+              <label class="canal-picker-item" id="canal-lbl-whatsapp">
+                <input type="checkbox" value="WhatsApp" class="canal-check" />
+                &#128242; WhatsApp
+              </label>
+              <label class="canal-picker-item" id="canal-lbl-linkedin">
+                <input type="checkbox" value="LinkedIn" class="canal-check" />
+                &#128101; LinkedIn
+              </label>
+              <label class="canal-picker-item" id="canal-lbl-youtube">
+                <input type="checkbox" value="YouTube" class="canal-check" />
+                &#9654; YouTube
+              </label>
+              <label class="canal-picker-item" id="canal-lbl-dpa">
+                <input type="checkbox" value="Portal DPA" class="canal-check" />
+                &#127760; Portal DPA
+              </label>
+              <label class="canal-picker-item" id="canal-lbl-pregrado">
+                <input type="checkbox" value="Portal Pregrado" class="canal-check" />
+                &#127891; Portal Pregrado
+              </label>
+              <label class="canal-picker-item" id="canal-lbl-posgrado">
+                <input type="checkbox" value="Portal Posgrado" class="canal-check" />
+                &#127891; Portal Posgrado
+              </label>
+            </div>
           </div>
           <div class="form-group">
             <label for="field-pilar">Pilar de Contenido *</label>
@@ -1375,10 +1445,18 @@ const CANAL_ICONS = {
 // Convert a Supabase row → app entry object
 function rowToEntry(row) {
   const hito = row.tipo_hito || '';
+  let canales = [];
+  if (Array.isArray(row.canales)) {
+    canales = row.canales.filter(Boolean);
+  } else if (row.canales) {
+    canales = [row.canales];
+  }
   return {
     id:           row.id,
     fecha:        row.fecha_real   || '',
-    canal:        Array.isArray(row.canales) ? (row.canales[0] || '') : (row.canales || ''),
+    canales:      canales,
+    // keep backward-compat single value for filters/CSV
+    canal:        canales[0] || '',
     pilar:        row.pilar        || '',
     hook:         row.hook         || '',
     body:         row.cuerpo       || '',
@@ -1413,7 +1491,7 @@ function entryToRow(entry, mesKey) {
     mes:        mesKey,
     fecha_texto:fechaTexto,
     fecha_real: entry.fecha || null,
-    canales:    entry.canal ? [entry.canal] : [],
+    canales:    Array.isArray(entry.canales) && entry.canales.length ? entry.canales : (entry.canal ? [entry.canal] : []),
     pilar:      entry.pilar      || null,
     hook:       entry.hook       || null,
     cuerpo:     entry.body       || null,
@@ -1551,7 +1629,7 @@ function getEntries() {
 
 function getFilteredEntries() {
   let list = getEntries();
-  if (state.filterCanal) list = list.filter(e => e.canal === state.filterCanal);
+  if (state.filterCanal) list = list.filter(e => (e.canales || []).includes(state.filterCanal));
   if (state.filterPilar) list = list.filter(e => e.pilar === state.filterPilar);
   return list.sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
 }
@@ -1695,7 +1773,7 @@ function renderTable() {
         <div class="date-weekday">${safe(fd.weekday)}</div>
       </td>
       <td>
-        <span class="canal-badge">${canalIconHtml(e.canal)} ${safe(e.canal)}</span>
+        <div class="canal-badges-wrap">${(e.canales && e.canales.length ? e.canales : (e.canal ? [e.canal] : [])).map(c => `<span class="canal-badge">${canalIconHtml(c)} ${safe(c)}</span>`).join('')}</div>
       </td>
       <td>
         <span class="pillar-badge pillar-${pkey}">
@@ -1746,7 +1824,7 @@ function renderGrid() {
 
   const filterEntries = list => {
     let out = list || [];
-    if (state.filterCanal) out = out.filter(e => e.canal === state.filterCanal);
+    if (state.filterCanal) out = out.filter(e => (e.canales || []).includes(state.filterCanal));
     if (state.filterPilar) out = out.filter(e => e.pilar === state.filterPilar);
     return out;
   };
@@ -1866,6 +1944,11 @@ function openNewModal() {
   document.getElementById('modal-title-text').textContent = 'Nueva Publicaci\u00f3n';
   document.getElementById('entry-form').reset();
   document.getElementById('entry-id').value = '';
+  // Clear multi-canal checkboxes
+  document.querySelectorAll('.canal-check').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.canal-picker-item').classList.remove('selected');
+  });
   const now = new Date();
   if (now.getFullYear() === state.currentYear && now.getMonth() === state.currentMonth) {
     const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -1888,7 +1971,12 @@ function openEditModal(id) {
   document.getElementById('modal-title-text').textContent = 'Editar Publicaci\u00f3n';
   document.getElementById('entry-id').value        = entry.id;
   document.getElementById('field-fecha').value     = entry.fecha;
-  document.getElementById('field-canal').value     = entry.canal;
+  // Restore multi-canal selection
+  const selectedCanales = entry.canales && entry.canales.length ? entry.canales : (entry.canal ? [entry.canal] : []);
+  document.querySelectorAll('.canal-check').forEach(cb => {
+    cb.checked = selectedCanales.includes(cb.value);
+    cb.closest('.canal-picker-item').classList.toggle('selected', cb.checked);
+  });
   document.getElementById('field-pilar').value     = entry.pilar;
   document.getElementById('field-formato').value   = entry.formato;
   document.getElementById('field-hook').value      = entry.hook;
@@ -1922,7 +2010,8 @@ function autofillPillarFromDate(dateStr) {
 
 async function saveModalEntry() {
   const fecha       = document.getElementById('field-fecha').value;
-  const canal       = document.getElementById('field-canal').value;
+  // Read all checked canales
+  const canales = Array.from(document.querySelectorAll('.canal-check:checked')).map(cb => cb.value);
   const pilar       = document.getElementById('field-pilar').value;
   const formato     = document.getElementById('field-formato').value;
   const hook        = document.getElementById('field-hook').value.trim();
@@ -1933,8 +2022,8 @@ async function saveModalEntry() {
   const isConferencia = document.getElementById('check-conferencia').checked;
   const isEvento      = document.getElementById('check-evento').checked;
 
-  if (!fecha || !canal || !pilar) {
-    showToast('Por favor completa Fecha, Canal y Pilar.', 'warning');
+  if (!fecha || !canales.length || !pilar) {
+    showToast('Por favor completa Fecha, al menos un Canal y el Pilar.', 'warning');
     return;
   }
 
@@ -1946,7 +2035,10 @@ async function saveModalEntry() {
 
   const idVal = document.getElementById('entry-id').value || null;
   const entry = {
-    id: idVal, fecha, canal, pilar, formato, hook, body, objetivo,
+    id: idVal, fecha,
+    canales,          // full array for Supabase
+    canal: canales[0] || '', // backward-compat
+    pilar, formato, hook, body, objetivo,
     isFeria, isTaller, isConferencia, isEvento,
     estado: 'Borrador',
   };
@@ -2009,12 +2101,13 @@ function setupFilters() {
 function exportCSV() {
   const entries = getFilteredEntries();
   if (!entries.length) { showToast('No hay publicaciones para exportar.', 'warning'); return; }
-  const headers = ['Fecha','Dia','Canal','Pilar','Hook','Cuerpo','Formato','Objetivo','Hitos','Estado'];
+  const headers = ['Fecha','Dia','Canales','Pilar','Hook','Cuerpo','Formato','Objetivo','Hitos','Estado'];
   const rows = entries.map(e => {
     const fd = formatDate(e.fecha);
     const hitos = [e.isFeria&&'Feria',e.isTaller&&'Taller',e.isConferencia&&'Conferencia',e.isEvento&&'Evento'].filter(Boolean).join(';');
+    const canalesStr = (e.canales && e.canales.length ? e.canales : (e.canal ? [e.canal] : [])).join(';');
     return [
-      e.fecha, fd.weekday, e.canal, e.pilar,
+      e.fecha, fd.weekday, canalesStr, e.pilar,
       `"${(e.hook||'').replace(/"/g,'""')}"`,
       `"${(e.body||'').replace(/"/g,'""')}"`,
       e.formato,
@@ -2113,6 +2206,12 @@ function setupListeners() {
   });
   document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
   document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
+  // Toggle .selected style on canal picker chips
+  document.getElementById('canal-picker').addEventListener('change', e => {
+    if (e.target.classList.contains('canal-check')) {
+      e.target.closest('.canal-picker-item').classList.toggle('selected', e.target.checked);
+    }
+  });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeModal(); closeConfirm(); }
   });
